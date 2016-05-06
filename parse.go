@@ -20,9 +20,92 @@ func init() {
 
 	prods := []parse.Production{
 		// S' -> E
+
+		// Functions
 		parse.NewProduction("S'", []parse.ProductionElement{
-			{false, "E", tok.UNKNOWN},
+			parse.NewNonTerminal("Func_nelist"),
 		}, nil),
+		parse.NewProduction("Func_list", []parse.ProductionElement{
+			parse.NewNonTerminal("Func_nelist"),
+		}, nil),
+		parse.NewProduction("Func_list", []parse.ProductionElement{
+			parse.NewTerminal(tok.EPSILON),
+		}, nil),
+		parse.NewProduction("Func_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Func_nelist"),
+			parse.NewNonTerminal("Func"),
+		}, nil),
+		parse.NewProduction("Func_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Func"),
+		}, nil),
+		// Hm, this production should technically not be necessary
+		// TODO: Investigate
+		// parse.NewProduction("Func", []parse.ProductionElement{
+		// 	parse.NewTerminal(tok.FUNCTION),
+		// 	parse.NewTerminal(tok.IDENTIFIER),
+		// 	parse.NewTerminal(tok.LPAR),
+		// 	parse.NewTerminal(tok.RPAR),
+		// 	parse.NewTerminal(tok.LBRACE),
+		// 	parse.NewTerminal(tok.RBRACE),
+		// }, nil),
+		parse.NewProduction("Func", []parse.ProductionElement{
+			parse.NewTerminal(tok.FUNCTION),
+			parse.NewTerminal(tok.IDENTIFIER),
+			parse.NewTerminal(tok.LPAR),
+			parse.NewTerminal(tok.RPAR),
+			parse.NewTerminal(tok.LBRACE),
+			// parse.NewNonTerminal("Vardecl_list"),
+			parse.NewNonTerminal("Stmt_list"),
+			parse.NewTerminal(tok.RBRACE),
+		}, nil),
+
+		// Statements
+		parse.NewProduction("Stmt_list", []parse.ProductionElement{
+			parse.NewNonTerminal("Stmt_nelist"),
+		}, nil),
+		parse.NewProduction("Stmt_list", []parse.ProductionElement{
+			parse.NewTerminal(tok.EPSILON),
+		}, nil),
+		parse.NewProduction("Stmt_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Stmt_nelist"),
+			parse.NewNonTerminal("Stmt"),
+		}, nil),
+		parse.NewProduction("Stmt_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Stmt"),
+		}, nil),
+
+		parse.NewProduction("Stmt", []parse.ProductionElement{
+			parse.NewNonTerminal("E"),
+			parse.NewTerminal(tok.SEMICOLON),
+		}, nil),
+
+		parse.NewProduction("Stmt", []parse.ProductionElement{
+			parse.NewNonTerminal("Vardecl"),
+		}, nil),
+
+		// Vardecl list
+		parse.NewProduction("Vardecl_list", []parse.ProductionElement{
+			parse.NewNonTerminal("Vardecl_nelist"),
+		}, nil),
+		parse.NewProduction("Vardecl_list", []parse.ProductionElement{
+			parse.NewTerminal(tok.EPSILON),
+		}, nil),
+		parse.NewProduction("Vardecl_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Vardecl_nelist"),
+			parse.NewNonTerminal("Vardecl"),
+		}, nil),
+		parse.NewProduction("Vardecl_nelist", []parse.ProductionElement{
+			parse.NewNonTerminal("Vardecl"),
+		}, nil),
+
+		parse.NewProduction("Vardecl", []parse.ProductionElement{
+			// parse.NewNonTerminal("Type"),
+			parse.NewTerminal(tok.VAR),
+			parse.NewTerminal(tok.IDENTIFIER),
+			parse.NewTerminal(tok.SEMICOLON),
+		}, nil),
+
+		// Expressions
 		// E -> E A T
 		parse.NewProduction("E", []parse.ProductionElement{
 			{false, "E", tok.UNKNOWN},
@@ -115,7 +198,7 @@ func init() {
 	table, gototable = a.BuildTable()
 }
 
-func Parse(input io.Reader) {
+func Parse(input io.Reader) ast.ASTnode {
 	stack := make([]parse.Elem, 1)
 
 	stack[0] = parse.Elem{initial, tok.Token{tok.UNKNOWN, "top"}, nil}
@@ -154,15 +237,29 @@ func Parse(input io.Reader) {
 			stack = append(stack, newState)
 		} else if _, ok := action.(parse.Accept); ok {
 			fmt.Println("Accepted")
-			return
+			return stack[1].Tree
 		} else {
 			fmt.Printf("Error: Found no action for token %s in state %d\n", token, state.State)
-			return
+			return nil
 		}
 	}
 }
 
 func main() {
-	r := bytes.NewBufferString("a +b * c - shazbot")
+	// r := bytes.NewBufferString("a + b ; c - shazbot;")
+
+	for i, _ := range table {
+		state := table[i]
+		fmt.Printf("State %d: ", i)
+		fmt.Printf("%+v\n\n", state)
+		// fmt.Println("goto:", gotoTbl[stateId])
+	}
+
+	r := bytes.NewBufferString("func foobar(){} func shazbot(){}")
 	Parse(r)
+
+	r = bytes.NewBufferString("func foobar(){ var a; var b; a + b; } ")
+	Parse(r)
+
+	// fmt.Printf("%#v\n", t)
 }

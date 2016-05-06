@@ -57,7 +57,7 @@ func (it Item) String() string {
 		if s.Terminal {
 			str += "<" + s.Token.String() + ">"
 		} else {
-			str += s.Name
+			str += s.Name + " "
 		}
 	}
 
@@ -78,6 +78,7 @@ func (a *Automaton) Init(prods []Production) {
 		for i := range prod.right {
 			a.items = append(a.items, Item{prod, i})
 		}
+
 		a.items = append(a.items, Item{prod, len(prod.right) + 1})
 	}
 }
@@ -132,6 +133,13 @@ func (a *Automaton) BuildState(startItems []int) *State {
 						}
 					}
 				}
+			} else if t.Token == tok.EPSILON {
+				if _, ok := itemSet[id+1]; !ok {
+					itemSet[id+1] = true
+					repeat = true
+					s.itemIds = append(s.itemIds, id+1)
+				}
+
 			}
 		}
 	}
@@ -144,6 +152,12 @@ func (a *Automaton) BuildState(startItems []int) *State {
 	// Construct the cores of the neighbours
 	for id, _ := range itemSet {
 		if a.items[id].position > len(a.items[id].right) {
+			continue
+		}
+
+		// Do not construct an edge if the next position is an epsilon
+		// Do not construct an edge if the next position is an epsilon
+		if a.items[id].right[a.items[id].position].Token == tok.EPSILON {
 			continue
 		}
 
@@ -187,7 +201,15 @@ func (a *Automaton) BuildTable() (table map[int]map[tok.Terminal]interface{}, go
 					} else if a.items[id].left.Name == "S'" {
 						table[stateId][t] = Accept{}
 					} else {
-						table[stateId][t] = Reduce{a.items[id].String(), len(a.items[id].right), a.items[id].left.Name, a.items[id].Production}
+						// Epsilons are not present on the stack by definition,
+						// avoid popping too much
+						epsilonCount := 0
+						for _, prodElem := range a.items[id].right {
+							if prodElem.Token == tok.EPSILON {
+								epsilonCount++
+							}
+						}
+						table[stateId][t] = Reduce{a.items[id].String(), len(a.items[id].right) - epsilonCount, a.items[id].left.Name, a.items[id].Production}
 					}
 				}
 
@@ -197,7 +219,11 @@ func (a *Automaton) BuildTable() (table map[int]map[tok.Terminal]interface{}, go
 			t := a.items[id].right[a.items[id].position]
 
 			if t.Terminal {
-				table[stateId][t.Token] = Shift{state.edges[t]}
+				if t.Token != tok.EPSILON {
+					table[stateId][t.Token] = Shift{state.edges[t]}
+				} else {
+
+				}
 			} else {
 				gotoTable[stateId][t.Name] = state.edges[t]
 			}

@@ -25,6 +25,8 @@ const (
 	DOUBLESTAR
 	DIV
 	DOT
+	SEMICOLON
+	VAR
 	IDENTIFIER
 	LEFTARROW
 	FUNCTION
@@ -67,8 +69,12 @@ func (t Terminal) String() string {
 		return "LEFTARROW"
 	case FUNCTION:
 		return "FUNCTION"
+	case SEMICOLON:
+		return "SEMICOLON"
 	case EOF:
 		return "EOF"
+	case VAR:
+		return "VAR"
 	default:
 		return "UNNAMED TERMINAL"
 	}
@@ -88,7 +94,9 @@ var typeTable map[string]Terminal = map[string]Terminal{
 	"/":    DIV,
 	".":    DOT,
 	"<-":   LEFTARROW,
+	";":    SEMICOLON,
 	"func": FUNCTION,
+	"var":  VAR,
 }
 
 var (
@@ -165,7 +173,7 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 
 			// The last 'c' of "func" was added above by the identifier code
 			// Do not unread in this case
-			if v != FUNCTION {
+			if v != FUNCTION && v != VAR {
 				tokenizer.reader.UnreadRune()
 			}
 

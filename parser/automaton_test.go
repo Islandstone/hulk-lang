@@ -81,12 +81,60 @@ func TestGenerateItems(t *testing.T) {
 
 	a := &Automaton{}
 
-	a.init(prods)
+	a.Init(prods)
 
 	assert.Len(t, a.items, 26)
 }
 
+func TestGenerateEpsilonItems(t *testing.T) {
+	prods := []Production{
+		// Functions
+		NewProduction("S'", []ProductionElement{
+			NewNonTerminal("Func_list"),
+		}, nil),
+		NewProduction("Func_list", []ProductionElement{
+			NewNonTerminal("Func_nelist"),
+		}, nil),
+		NewProduction("Func_list", []ProductionElement{
+			NewTerminal(tok.EPSILON),
+		}, nil),
+		NewProduction("Func_nelist", []ProductionElement{
+			NewNonTerminal("Func_nelist"),
+			NewNonTerminal("Func"),
+		}, nil),
+		NewProduction("Func_nelist", []ProductionElement{
+			NewNonTerminal("Func"),
+		}, nil),
+		NewProduction("Func", []ProductionElement{
+			NewTerminal(tok.FUNCTION),
+			NewTerminal(tok.IDENTIFIER),
+			NewTerminal(tok.LPAR),
+			NewTerminal(tok.RPAR),
+			NewTerminal(tok.LBRACE),
+			NewTerminal(tok.RBRACE),
+		}, nil),
+	}
+
+	a := &Automaton{}
+	a.Init(prods)
+
+	a.BuildState([]int{0})
+	for i, state := range a.states {
+		fmt.Printf("State %d:\n", i)
+
+		for _, itemId := range state.itemIds {
+			fmt.Println(a.items[itemId])
+		}
+
+		fmt.Println()
+	}
+
+	assert.Len(t, a.states, 11)
+}
+
 func TestMakeStartState(t *testing.T) {
+	t.Skip()
+
 	prods := []Production{
 		// S' -> E
 		NewProduction("S'", []ProductionElement{
@@ -138,8 +186,85 @@ func TestMakeStartState(t *testing.T) {
 
 	a := &Automaton{}
 
-	a.init(prods)
-	a.buildState([]int{0})
+	a.Init(prods)
+	a.BuildState([]int{0})
+
+	/*
+		for i, state := range a.states {
+			fmt.Printf("State %d:\n", i)
+
+			for _, itemId := range state.itemIds {
+				fmt.Println(a.items[itemId])
+			}
+
+			fmt.Printf("neigh: %v\n", state.neigh)
+
+			fmt.Println("")
+		}
+
+		tbl, gotoTbl := a.BuildTable()
+		for stateId, line := range tbl {
+			fmt.Printf("State %d: ", stateId)
+			fmt.Printf("%+v\n", line)
+			fmt.Println("goto:", gotoTbl[stateId])
+		}
+	*/
+}
+
+// TODO: Items with <EPSILON> are not handled correctly
+func TestListProductions(t *testing.T) {
+	// t.Skip()
+	prods := []Production{
+		// Functions
+		NewProduction("S'", []ProductionElement{
+			NewNonTerminal("Func_nelist"),
+		}, nil),
+		NewProduction("Func_list", []ProductionElement{
+			NewNonTerminal("Func_nelist"),
+		}, nil),
+		NewProduction("Func_list", []ProductionElement{
+			NewTerminal(tok.EPSILON),
+		}, nil),
+		NewProduction("Func_nelist", []ProductionElement{
+			NewNonTerminal("Func_nelist"),
+			NewNonTerminal("Func"),
+		}, nil),
+		NewProduction("Func_nelist", []ProductionElement{
+			NewNonTerminal("Func"),
+		}, nil),
+		NewProduction("Func", []ProductionElement{
+			NewTerminal(tok.FUNCTION),
+			NewTerminal(tok.IDENTIFIER),
+			NewTerminal(tok.LPAR),
+			NewTerminal(tok.RPAR),
+			NewTerminal(tok.LBRACE),
+			NewNonTerminal("Stmt_list"),
+			NewTerminal(tok.RBRACE),
+		}, nil),
+
+		NewProduction("Stmt_list", []ProductionElement{
+			NewNonTerminal("Stmt_nelist"),
+		}, nil),
+		NewProduction("Stmt_list", []ProductionElement{
+			NewTerminal(tok.EPSILON),
+		}, nil),
+		NewProduction("Stmt_nelist", []ProductionElement{
+			NewNonTerminal("Stmt_nelist"),
+			NewNonTerminal("Stmt"),
+		}, nil),
+		NewProduction("Stmt_nelist", []ProductionElement{
+			NewNonTerminal("Stmt"),
+		}, nil),
+
+		NewProduction("Stmt", []ProductionElement{
+			NewTerminal(tok.PLUS),
+		}, nil),
+	}
+
+	a := &Automaton{}
+
+	a.Init(prods)
+	a.BuildState([]int{0})
 
 	for i, state := range a.states {
 		fmt.Printf("State %d:\n", i)
@@ -148,16 +273,21 @@ func TestMakeStartState(t *testing.T) {
 			fmt.Println(a.items[itemId])
 		}
 
-		fmt.Printf("neigh: %v\n", state.neigh)
+		// fmt.Printf("neigh: %v\n", state.neigh)
+		fmt.Printf("neigh: ")
+		for _, neigh := range state.neigh {
+			fmt.Printf("%d ", neigh.id)
+		}
 
-		fmt.Println("")
+		fmt.Println()
+		fmt.Println()
 	}
 
-	a.buildTable()
-	tbl, gotoTbl := a.buildTable()
-	for stateId, line := range tbl {
-		fmt.Printf("State %d: ", stateId)
-		fmt.Printf("%+v\n", line)
-		fmt.Println("goto:", gotoTbl[stateId])
+	tbl, _ := a.BuildTable()
+	for i, _ := range a.states {
+		state := tbl[i]
+		fmt.Printf("State %d: ", i)
+		fmt.Printf("%+v\n\n", state)
+		// fmt.Println("goto:", gotoTbl[stateId])
 	}
 }

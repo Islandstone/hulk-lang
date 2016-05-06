@@ -3,6 +3,10 @@ package ast
 type ASTnode interface {
 }
 
+type Program struct {
+	Expr
+}
+
 type Expr interface {
 }
 
