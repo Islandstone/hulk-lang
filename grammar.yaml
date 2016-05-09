@@ -1,0 +1,96 @@
+production:
+- name: "S'"
+  right: ["n:Func_list"]
+- name: "Func_list"
+  right: ["n:Func_nelist"]
+  create: "top"
+- name: "Func_list"
+  right: ["t:EPSILON"]
+- name: "Func_nelist"
+  right: ["n:Func_nelist", "n:Func"]  
+  create: "append_func"
+- name: "Func_nelist"
+  right: ["n:Func"]  
+  create: "single_func"
+- name: "Func"
+  right: ["t:FUNCTION", "t:IDENTIFIER", "t:LPAR", "n:formal_param_list", "t:RPAR", "t:LBRACE", "n:Stmt_list", "t:RBRACE"]
+  create: "func"
+
+- name: "Stmt_list"
+  right: ["n:Stmt_nelist"]  
+  create: "top"
+- name: "Stmt_list"
+  right: ["t:EPSILON"]  
+  create: "noop"
+- name: "Stmt_nelist"
+  right: ["n:Stmt", "n:Stmt_list"]
+  create: "append_stmt"
+
+- name: "formal_param_list"
+  right: ["n:formal_param_nelist"]
+  create: "top"
+- name: "formal_param_list"
+  right: ["t:EPSILON"]
+- name: "formal_param_nelist"
+  right: ["t:IDENTIFIER"]
+  create: "formal_param_single"
+- name: "formal_param_nelist"
+  right: ["t:IDENTIFIER", "t:COMMA", "n:formal_param_nelist"]
+  create: "formal_param_prepend"
+
+- name: "Stmt"
+  right: ["n:E", "t:SEMICOLON"]
+  create: "expr_stmt"
+- name: "Stmt"
+  right: ["n:Vardecl"]
+  create: "top"
+- name: "Stmt"
+  right: ["n:Register_assignment"]
+  create: "top"
+
+- name: "Vardecl"
+  right: ["t:VAR", "t:IDENTIFIER", "t:SEMICOLON"]
+  create: "variable_decl"
+
+- name: "Register_assignment"
+  right: ["t:IDENTIFIER", "t:LEFTARROW", "n:E", "t:SEMICOLON"]
+  create: "empty_stmt"
+
+- name: "E"
+  right: ["n:E", "n:A", "n:T"]
+  create: "binop ~> expr"
+
+- name: "E"
+  right: ["n:T"]
+  create: "top"
+
+- name: "A"
+  right: ["t:PLUS"]
+  create: "op:plus"
+             
+- name: "A"
+  right: ["t:MINUS"]
+  create: "op:minus"
+
+- name: "T"
+  right: ["n:T", "n:M", "n:F"]
+  create: "binop ~> expr"
+
+- name: "T"
+  right: ["n:F"]
+  create: "top"
+
+- name: "M"
+  right: ["t:STAR"]
+  create: "op:multiply"
+
+- name: "M"
+  right: ["t:DIV"]
+
+- name: "F"
+  right: ["t:LPAR", "n:E", "t:RPAR"]
+  create: "top-1"
+
+- name: "F"
+  right: ["t:IDENTIFIER"]
+  create: "variable"

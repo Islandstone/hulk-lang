@@ -16,10 +16,10 @@ func TestNewProduction(t *testing.T) {
 		ProductionElement{false, "B", tok.UNKNOWN},
 	}, nil)
 
-	assert.Equal(t, p.left, ProductionElement{false, "A", tok.UNKNOWN})
+	assert.Equal(t, p.Left, ProductionElement{false, "A", tok.UNKNOWN})
 
-	// assert.Equal(t, p.right, []string{"a", "B"})
-	assert.Equal(t, p.right, []ProductionElement{
+	// assert.Equal(t, p.Right, []string{"a", "B"})
+	assert.Equal(t, p.Right, []ProductionElement{
 		ProductionElement{true, "", tok.IDENTIFIER},
 		ProductionElement{false, "B", tok.UNKNOWN},
 	})

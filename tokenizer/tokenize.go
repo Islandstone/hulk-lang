@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"bufio"
+	// "fmt"
 	"io"
 	"regexp"
 	"unicode"
@@ -17,8 +18,11 @@ const (
 	RPAR
 	LBRACE
 	RBRACE
+
 	EQUALS
 	DOUBLEEQUALS
+	LESS
+
 	PLUS
 	MINUS
 	STAR
@@ -26,6 +30,7 @@ const (
 	DIV
 	DOT
 	SEMICOLON
+	COMMA
 	VAR
 	IDENTIFIER
 	LEFTARROW
@@ -93,10 +98,35 @@ var typeTable map[string]Terminal = map[string]Terminal{
 	"**":   DOUBLESTAR,
 	"/":    DIV,
 	".":    DOT,
+	"<":    LESS,
 	"<-":   LEFTARROW,
 	";":    SEMICOLON,
 	"func": FUNCTION,
 	"var":  VAR,
+	",":    COMMA,
+}
+
+var TerminalReflection map[string]Terminal = map[string]Terminal{
+	"EPSILON":      EPSILON,
+	"LPAR":         LPAR,
+	"RPAR":         RPAR,
+	"LBRACE":       LBRACE,
+	"RBRACE":       RBRACE,
+	"EQUALS":       EQUALS,
+	"DOUBLEEQUALS": DOUBLEEQUALS,
+	"PLUS":         PLUS,
+	"MINUS":        MINUS,
+	"STAR":         STAR,
+	"DOUBLESTAR":   DOUBLESTAR,
+	"DIV":          DIV,
+	"DOT":          DOT,
+	"SEMICOLON":    SEMICOLON,
+	"VAR":          VAR,
+	"IDENTIFIER":   IDENTIFIER,
+	"LEFTARROW":    LEFTARROW,
+	"FUNCTION":     FUNCTION,
+	"EOF":          EOF,
+	"COMMA":        COMMA,
 }
 
 var (
@@ -130,6 +160,7 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 	t.Type = UNKNOWN
 	t.Text = ""
 
+	// fmt.Println("Restart")
 	for {
 		c, length, err := tokenizer.reader.ReadRune()
 
@@ -138,9 +169,11 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 		if length == 0 {
 			// fmt.Printf("%+v\n", t)
 			if t.Type != UNKNOWN {
+				// fmt.Println("b")
 				return
 			} else {
 				t = Token{EOF, "$"}
+				// fmt.Println("e")
 				break
 			}
 		}
@@ -151,8 +184,10 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 
 		if unicode.IsSpace(c) {
 			if t.Type == UNKNOWN {
+				// fmt.Println("a")
 				continue
 			} else {
+				// fmt.Println("b")
 				break
 			}
 		}
@@ -160,23 +195,28 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 		if identifiers.MatchString(t.Text + string(c)) {
 			t.Type = IDENTIFIER
 			t.Text += string(c)
+			// fmt.Println("e")
 		} else if t.Type == IDENTIFIER {
 			tokenizer.reader.UnreadRune()
+			// fmt.Println("c")
 			break
 		}
 
 		if v, ok := typeTable[t.Text+string(c)]; ok {
 			t.Type = v
 			t.Text += string(c)
+			// fmt.Println("w")
 		} else if v, ok = typeTable[t.Text]; ok {
 			t.Type = v
 
 			// The last 'c' of "func" was added above by the identifier code
 			// Do not unread in this case
 			if v != FUNCTION && v != VAR {
+				// fmt.Println("c")
 				tokenizer.reader.UnreadRune()
 			}
 
+			// fmt.Println("d")
 			break
 		}
 	}

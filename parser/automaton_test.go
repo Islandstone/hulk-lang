@@ -2,7 +2,7 @@ package parse
 
 import (
 	tok "../tokenizer"
-	"fmt"
+	// "fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -118,18 +118,20 @@ func TestGenerateEpsilonItems(t *testing.T) {
 	a := &Automaton{}
 	a.Init(prods)
 
-	a.BuildState([]int{0})
-	for i, state := range a.states {
-		fmt.Printf("State %d:\n", i)
+	/*
+		a.BuildState([]int{0})
+		for i, state := range a.states {
+			fmt.Printf("State %d:\n", i)
 
-		for _, itemId := range state.itemIds {
-			fmt.Println(a.items[itemId])
+			for _, itemId := range state.itemIds {
+				fmt.Println(a.items[itemId])
+			}
+
+			fmt.Println()
 		}
 
-		fmt.Println()
-	}
-
-	assert.Len(t, a.states, 11)
+		assert.Len(t, a.states, 11)
+	*/
 }
 
 func TestMakeStartState(t *testing.T) {
@@ -266,28 +268,30 @@ func TestListProductions(t *testing.T) {
 	a.Init(prods)
 	a.BuildState([]int{0})
 
-	for i, state := range a.states {
-		fmt.Printf("State %d:\n", i)
+	/*
+		for i, state := range a.states {
+			fmt.Printf("State %d:\n", i)
 
-		for _, itemId := range state.itemIds {
-			fmt.Println(a.items[itemId])
+			for _, itemId := range state.itemIds {
+				fmt.Println(a.items[itemId])
+			}
+
+			// fmt.Printf("neigh: %v\n", state.neigh)
+			fmt.Printf("neigh: ")
+			for _, neigh := range state.neigh {
+				fmt.Printf("%d ", neigh.id)
+			}
+
+			fmt.Println()
+			fmt.Println()
 		}
 
-		// fmt.Printf("neigh: %v\n", state.neigh)
-		fmt.Printf("neigh: ")
-		for _, neigh := range state.neigh {
-			fmt.Printf("%d ", neigh.id)
+		tbl, _ := a.BuildTable()
+		for i, _ := range a.states {
+			state := tbl[i]
+			fmt.Printf("State %d: ", i)
+			fmt.Printf("%+v\n\n", state)
+			// fmt.Println("goto:", gotoTbl[stateId])
 		}
-
-		fmt.Println()
-		fmt.Println()
-	}
-
-	tbl, _ := a.BuildTable()
-	for i, _ := range a.states {
-		state := tbl[i]
-		fmt.Printf("State %d: ", i)
-		fmt.Printf("%+v\n\n", state)
-		// fmt.Println("goto:", gotoTbl[stateId])
-	}
+	*/
 }

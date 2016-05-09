@@ -52,3 +52,14 @@ func TestTokenizeSimpleExpr(t *testing.T) {
 	assert.Equal(Token{EOF, "$"},
 		tokenizer.GetNextToken())
 }
+
+func TestLeftArrow(t *testing.T) {
+	assert := assert.New(t)
+
+	in := bytes.NewBufferString("CR3 <- foobar")
+	tokenizer := NewTokenizer(in)
+
+	assert.Equal(Token{IDENTIFIER, "CR3"}, tokenizer.GetNextToken())
+	assert.Equal(Token{LEFTARROW, "<-"}, tokenizer.GetNextToken())
+
+}

@@ -4,7 +4,7 @@ type ASTnode interface {
 }
 
 type Program struct {
-	Expr
+	Functions []Function
 }
 
 type Expr interface {
@@ -23,6 +23,15 @@ type BinOp struct {
 	Right Expr
 }
 
+type Stmt interface {
+}
+
+type Function struct {
+	Name   string
+	Params []Variable
+	Stmts  []Stmt
+}
+
 type Operator int
 
 const (
@@ -34,3 +43,7 @@ const (
 	EXP
 	DOT
 )
+
+type ExprStmt struct {
+	Expr
+}

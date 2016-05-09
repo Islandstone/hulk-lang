@@ -20,8 +20,8 @@ func Follow(prods []Production, first map[string][]tok.Terminal) map[string][]to
 	followMap := make(map[string][]tok.Terminal)
 
 	for _, prod := range prods {
-		followSets[prod.left.Name] = make(map[tok.Terminal]bool)
-		followMap[prod.left.Name] = nil
+		followSets[prod.Left.Name] = make(map[tok.Terminal]bool)
+		followMap[prod.Left.Name] = nil
 	}
 
 	// All grammars have a S' which should have a $ in the follow set
@@ -29,10 +29,10 @@ func Follow(prods []Production, first map[string][]tok.Terminal) map[string][]to
 
 	repeat := true
 
-	addToFollowSet := func(left string, term tok.Terminal) {
-		if _, exists := followSets[left][term]; !exists {
-			// fmt.Println("Adding", term, "to", left)
-			followSets[left][term] = true
+	addToFollowSet := func(Left string, term tok.Terminal) {
+		if _, exists := followSets[Left][term]; !exists {
+			// fmt.Println("Adding", term, "to", Left)
+			followSets[Left][term] = true
 			if !repeat {
 				repeat = true
 			}
@@ -51,11 +51,11 @@ func Follow(prods []Production, first map[string][]tok.Terminal) map[string][]to
 	for repeat {
 		repeat = false
 		for _, prod := range prods {
-			for i := len(prod.right) - 1; i >= 0; i-- {
-				last := prod.right[i]
+			for i := len(prod.Right) - 1; i >= 0; i-- {
+				last := prod.Right[i]
 
 				if !last.Terminal {
-					for key, _ := range followSets[prod.left.Name] {
+					for key, _ := range followSets[prod.Left.Name] {
 						addToFollowSet(last.Name, key)
 					}
 
@@ -67,17 +67,17 @@ func Follow(prods []Production, first map[string][]tok.Terminal) map[string][]to
 				}
 			}
 
-			if len(prod.right) <= 1 {
+			if len(prod.Right) <= 1 {
 				continue
 			}
 
 			// All tokens except the last one in the production
-			for i, this := range prod.right[:len(prod.right)-1] {
+			for i, this := range prod.Right[:len(prod.Right)-1] {
 				if this.Terminal {
 					continue
 				}
 
-				next := prod.right[i+1]
+				next := prod.Right[i+1]
 				if next.Terminal {
 					// If the next token is a terminal, just add it
 					addToFollowSet(this.Name, next.Token)
@@ -98,9 +98,9 @@ func Follow(prods []Production, first map[string][]tok.Terminal) map[string][]to
 
 	// TODO: Update these in line
 	for _, prod := range prods {
-		for v, _ := range followSets[prod.left.Name] {
-			followMap[prod.left.Name] = append(followMap[prod.left.Name], v)
-			delete(followSets[prod.left.Name], v)
+		for v, _ := range followSets[prod.Left.Name] {
+			followMap[prod.Left.Name] = append(followMap[prod.Left.Name], v)
+			delete(followSets[prod.Left.Name], v)
 		}
 	}
 
