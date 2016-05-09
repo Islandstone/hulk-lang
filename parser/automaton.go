@@ -48,8 +48,8 @@ type Item struct {
 }
 
 func (it Item) String() string {
-	str := it.left.Name + " → "
-	for i, s := range it.right {
+	str := it.Left.Name + " → "
+	for i, s := range it.Right {
 		if i == it.position {
 			str += "."
 		}
@@ -61,7 +61,7 @@ func (it Item) String() string {
 		}
 	}
 
-	if it.position > len(it.right) {
+	if it.position > len(it.Right) {
 		str += "."
 	}
 
@@ -75,11 +75,11 @@ func NewItem(prod Production) Item {
 func (a *Automaton) Init(prods []Production) {
 	a.prods = prods
 	for _, prod := range prods {
-		for i := range prod.right {
+		for i := range prod.Right {
 			a.items = append(a.items, Item{prod, i})
 		}
 
-		a.items = append(a.items, Item{prod, len(prod.right) + 1})
+		a.items = append(a.items, Item{prod, len(prod.Right) + 1})
 	}
 }
 
@@ -116,16 +116,16 @@ func (a *Automaton) BuildState(startItems []int) *State {
 
 		// For each item in the set
 		for id, _ := range itemSet {
-			if a.items[id].position > len(a.items[id].right) {
+			if a.items[id].position > len(a.items[id].Right) {
 				continue
 			}
 
 			// Check if the next token is a non-terminal
-			t := a.items[id].right[a.items[id].position]
+			t := a.items[id].Right[a.items[id].position]
 			if !t.Terminal {
-				// Add any item with t as left hand side and position 0
+				// Add any item with t as Left hand side and position 0
 				for i, item := range a.items {
-					if item.left == t && item.position == 0 {
+					if item.Left == t && item.position == 0 {
 						if _, ok := itemSet[i]; !ok {
 							itemSet[i] = true
 							repeat = true
@@ -151,18 +151,18 @@ func (a *Automaton) BuildState(startItems []int) *State {
 
 	// Construct the cores of the neighbours
 	for id, _ := range itemSet {
-		if a.items[id].position > len(a.items[id].right) {
+		if a.items[id].position > len(a.items[id].Right) {
 			continue
 		}
 
 		// Do not construct an edge if the next position is an epsilon
 		// Do not construct an edge if the next position is an epsilon
-		if a.items[id].right[a.items[id].position].Token == tok.EPSILON {
+		if a.items[id].Right[a.items[id].position].Token == tok.EPSILON {
 			continue
 		}
 
-		edges[a.items[id].right[a.items[id].position]] =
-			append(edges[a.items[id].right[a.items[id].position]], id+1)
+		edges[a.items[id].Right[a.items[id].position]] =
+			append(edges[a.items[id].Right[a.items[id].position]], id+1)
 	}
 
 	// For each of the neighbor cores
@@ -193,30 +193,30 @@ func (a *Automaton) BuildTable() (table map[int]map[tok.Terminal]interface{}, go
 
 		for _, id := range state.itemIds {
 			// A reduction
-			if a.items[id].position > len(a.items[id].right) {
+			if a.items[id].position > len(a.items[id].Right) {
 
-				for _, t := range followSet[a.items[id].left.Name] {
+				for _, t := range followSet[a.items[id].Left.Name] {
 					if _, notEmpty := table[stateId][t]; notEmpty {
 						fmt.Println("Conflict")
-					} else if a.items[id].left.Name == "S'" {
+					} else if a.items[id].Left.Name == "S'" {
 						table[stateId][t] = Accept{}
 					} else {
 						// Epsilons are not present on the stack by definition,
 						// avoid popping too much
 						epsilonCount := 0
-						for _, prodElem := range a.items[id].right {
+						for _, prodElem := range a.items[id].Right {
 							if prodElem.Token == tok.EPSILON {
 								epsilonCount++
 							}
 						}
-						table[stateId][t] = Reduce{a.items[id].String(), len(a.items[id].right) - epsilonCount, a.items[id].left.Name, a.items[id].Production}
+						table[stateId][t] = Reduce{a.items[id].String(), len(a.items[id].Right) - epsilonCount, a.items[id].Left.Name, a.items[id].Production}
 					}
 				}
 
 				continue
 			}
 
-			t := a.items[id].right[a.items[id].position]
+			t := a.items[id].Right[a.items[id].position]
 
 			if t.Terminal {
 				if t.Token != tok.EPSILON {
