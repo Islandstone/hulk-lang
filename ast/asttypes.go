@@ -26,6 +26,12 @@ type BinOp struct {
 type Stmt interface {
 }
 
+type RegisterAssignStmt struct {
+	Register string
+
+	Right Expr
+}
+
 type Function struct {
 	Name   string
 	Params []Variable

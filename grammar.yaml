@@ -54,7 +54,7 @@ production:
 
 - name: "Register_assignment"
   right: ["t:IDENTIFIER", "t:LEFTARROW", "n:E", "t:SEMICOLON"]
-  create: "empty_stmt"
+  create: "register_assignment"
 
 - name: "E"
   right: ["n:E", "n:A", "n:T"]

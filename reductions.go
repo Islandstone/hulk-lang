@@ -41,13 +41,17 @@ var ReduceMap map[string]func(stack []parse.Elem) interface{} = map[string]func(
 
 	"func": func(stack []parse.Elem) interface{} {
 		var stmts []ast.Stmt = nil
+		var params []ast.Variable = nil
 		if stack[len(stack)-2].Tree != nil {
 			stmts = stack[len(stack)-2].Tree.([]ast.Stmt)
 		}
+		if stack[len(stack)-5].Tree != nil {
+			params = stack[len(stack)-5].Tree.([]ast.Variable)
+		}
 		return ast.Function{
-			stack[len(stack)-7].Token.Text,            // Name
-			stack[len(stack)-5].Tree.([]ast.Variable), // TODO: Params
-			stmts,
+			stack[len(stack)-7].Token.Text, // Name
+			params, // Params
+			stmts,  // Statement list
 		}
 	},
 
@@ -93,6 +97,13 @@ var ReduceMap map[string]func(stack []parse.Elem) interface{} = map[string]func(
 
 	"formal_param_single": func(stack []parse.Elem) interface{} {
 		return []ast.Variable{ast.Variable{stack[len(stack)-1].Token.Text}}
+	},
+
+	"register_assignment": func(stack []parse.Elem) interface{} {
+		return ast.RegisterAssignStmt{
+			stack[len(stack)-4].Token.Text,
+			stack[len(stack)-2].Tree.(ast.Expr),
+		}
 	},
 
 	"noop": func(stack []parse.Elem) interface{} { return nil },
