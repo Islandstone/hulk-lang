@@ -130,7 +130,7 @@ var TerminalReflection map[string]Terminal = map[string]Terminal{
 }
 
 var (
-	identifiers = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*$")
+	identifiers = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
 )
 
 type Token struct {
@@ -147,18 +147,25 @@ func NewTokenizer(input io.Reader) Tokenizer {
 }
 
 func isspace(r rune) bool {
-	if r == ' ' {
+	switch r {
+	case ' ':
 		return true
-	} else if r == '\n' {
+	case '\n':
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 	t.Type = UNKNOWN
 	t.Text = ""
+
+	// TODO: /* */ comments
+	// TODO: Nested /* */ comments
+	// commentLevel := 0
+
+	insideComment := false
 
 	// fmt.Println("Restart")
 	for {
@@ -182,6 +189,18 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 			panic(err)
 		}
 
+		if insideComment {
+			if c == '\n' {
+				insideComment = false
+
+				t.Type = UNKNOWN
+				t.Text = ""
+			} else {
+
+			}
+			continue
+		}
+
 		if unicode.IsSpace(c) {
 			if t.Type == UNKNOWN {
 				// fmt.Println("a")
@@ -190,6 +209,11 @@ func (tokenizer *Tokenizer) GetNextToken() (t Token) {
 				// fmt.Println("b")
 				break
 			}
+		}
+
+		if t.Text == "/" && c == '/' {
+			insideComment = true
+			continue
 		}
 
 		if identifiers.MatchString(t.Text + string(c)) {
